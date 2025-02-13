@@ -169,7 +169,8 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
       let isInternal = isInternalDropOperation(ref);
       let isValidDropTarget = (target) => state.getDropOperation({target, types, allowedOperations, isInternal, draggingKeys}) !== 'cancel';
       let target = props.dropTargetDelegate.getDropTargetFromPoint(x, y, isValidDropTarget);
-      if (!target) {
+      let isItemDrop = target?.type === 'item' && target?.dropPosition === 'on';
+      if (!target || (isItemDrop && state.selectionManager.isDisabled(target.key))) {
         localState.dropOperation = 'cancel';
         localState.nextTarget = null;
         return 'cancel';
@@ -379,7 +380,8 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
         // first try the other positions in the current key. Otherwise (e.g. in a grid layout),
         // jump to the same drop position in the new key.
         let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyBefore(target.key) : localState.state.collection.getKeyAfter(target.key);
-        if (nextKey == null || nextKey === nextCollectionKey) {
+        let isLastDisabled = nextCollectionKey && nextCollectionKey === localState.state.collection.getLastKey() && localState.state.selectionManager.isDisabled(nextCollectionKey);
+        if (!isLastDisabled && (nextKey == null || nextKey === nextCollectionKey) && (target.dropPosition === 'after' || !localState.state.selectionManager.isDisabled(target.key))) {
           let positionIndex = dropPositions.indexOf(target.dropPosition);
           let nextDropPosition = dropPositions[positionIndex + 1];
           if (positionIndex < dropPositions.length - 1 && !(nextDropPosition === dropPositions[2] && nextKey != null)) {
@@ -395,6 +397,9 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           if (target.dropPosition === dropPositions[2]) {
             dropPosition = 'on';
           }
+        } else if (target.dropPosition !== 'on' || isLastDisabled) {
+          nextKey = nextCollectionKey;
+          dropPosition = isLastDisabled ? 'after' : target.dropPosition;
         } else {
           dropPosition = target.dropPosition;
         }
@@ -433,7 +438,7 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
         // first try the other positions in the current key. Otherwise (e.g. in a grid layout),
         // jump to the same drop position in the new key.
         let prevCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyAfter(target.key) : localState.state.collection.getKeyBefore(target.key);
-        if (nextKey == null || nextKey === prevCollectionKey) {
+        if ((nextKey == null || nextKey === prevCollectionKey) && (target.dropPosition === 'before' || !localState.state.selectionManager.isDisabled(target.key))) {
           let positionIndex = dropPositions.indexOf(target.dropPosition);
           let nextDropPosition = dropPositions[positionIndex - 1];
           if (positionIndex > 0 && nextDropPosition !== dropPositions[2]) {
@@ -449,6 +454,12 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           if (target.dropPosition === dropPositions[0]) {
             dropPosition = 'on';
           }
+        } else if (target.dropPosition === 'on' && nextKey !== prevCollectionKey) {
+          nextKey = target.key;
+          dropPosition = direction === 'rtl' ? 'after' : 'before';
+        } else if (target.dropPosition !== 'on') {
+          nextKey = prevCollectionKey;
+          dropPosition = target.dropPosition;
         } else {
           dropPosition = target.dropPosition;
         }
