@@ -336,7 +336,7 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
     }, 50);
   }, [localState, defaultOnDrop, ref, updateFocusAfterDrop]);
 
-   
+
   useEffect(() => {
     return () => {
       if (droppingState.current) {
@@ -367,42 +367,53 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
 
       let {keyboardDelegate} = localState.props;
       let nextKey: Key | null | undefined;
-      if (target?.type === 'item') {
-        nextKey = horizontal ? keyboardDelegate.getKeyRightOf?.(target.key) : keyboardDelegate.getKeyBelow?.(target.key);
-      } else {
-        nextKey = horizontal && direction === 'rtl' ? keyboardDelegate.getLastKey?.() : keyboardDelegate.getFirstKey?.();
-      }
       let dropPositions = horizontal && direction === 'rtl' ? DROP_POSITIONS_RTL : DROP_POSITIONS;
       let dropPosition: DropPosition = dropPositions[0];
 
       if (target.type === 'item') {
-        // If the the keyboard delegate returned the next key in the collection,
-        // first try the other positions in the current key. Otherwise (e.g. in a grid layout),
-        // jump to the same drop position in the new key.
+        let isTargetDisabled = localState.state.selectionManager.isDisabled(target.key);
+        let isTargetKeyLastKey = target.key === localState.state.collection.getLastKey();
         let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyBefore(target.key) : localState.state.collection.getKeyAfter(target.key);
-        let isLastDisabled = nextCollectionKey && nextCollectionKey === localState.state.collection.getLastKey() && localState.state.selectionManager.isDisabled(nextCollectionKey);
-        if (!isLastDisabled && (nextKey == null || nextKey === nextCollectionKey) && (target.dropPosition === 'after' || !localState.state.selectionManager.isDisabled(target.key))) {
-          let positionIndex = dropPositions.indexOf(target.dropPosition);
-          let nextDropPosition = dropPositions[positionIndex + 1];
-          if (positionIndex < dropPositions.length - 1 && !(nextDropPosition === dropPositions[2] && nextKey != null)) {
-            return {
-              type: 'item',
-              key: target.key,
-              dropPosition: nextDropPosition
-            };
-          }
+        let isNextCollectionKeyDisabled = nextCollectionKey && localState.state.selectionManager.isDisabled(nextCollectionKey);
 
-          // If the last drop position was 'after', then 'before' on the next key is equivalent.
-          // Switch to 'on' instead.
-          if (target.dropPosition === dropPositions[2]) {
-            dropPosition = 'on';
-          }
-        } else if (target.dropPosition !== 'on' || isLastDisabled) {
-          nextKey = nextCollectionKey;
-          dropPosition = isLastDisabled ? 'after' : target.dropPosition;
+        // item next key
+        // edge cases
+        if (isTargetKeyLastKey && target.dropPosition === dropPositions[2]) {
+          return {
+            type: 'item',
+            key: localState.state.collection.getFirstKey()!,
+            dropPosition: dropPositions[0]
+          };
+        } else if ((target.dropPosition === dropPositions[0] && isTargetKeyLastKey && isTargetDisabled) || (target.dropPosition === dropPositions[1] && isTargetKeyLastKey)) {
+          return {
+            type: 'item',
+            key: target.key,
+            dropPosition: dropPositions[2]
+          };
+          // general logic
+        }  else if (target.dropPosition === dropPositions[0]) {
+          return {
+            type: 'item',
+            key: isTargetDisabled ? nextCollectionKey! : target.key,
+            dropPosition: isTargetDisabled ? dropPositions[0] : dropPositions[1]
+          };
+        } else if (target.dropPosition === dropPositions[1]) {
+          return {
+            type: 'item',
+            key: nextCollectionKey!,
+            dropPosition: dropPositions[0]
+          };
+        } else if (target.dropPosition === dropPositions[2]) {
+          return {
+            type: 'item',
+            key: nextCollectionKey!,
+            dropPosition: isNextCollectionKeyDisabled ? dropPositions[2] : dropPositions[1]
+          };
         } else {
-          dropPosition = target.dropPosition;
+          console.warn('How did you get here?', target.dropPosition);
         }
+      } else {
+        nextKey = horizontal && direction === 'rtl' ? keyboardDelegate.getLastKey?.() : keyboardDelegate.getFirstKey?.();
       }
 
       if (nextKey == null) {
@@ -425,44 +436,53 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
     let getPreviousTarget = (target: DropTarget | null | undefined, wrap = true, horizontal = false): DropTarget | null => {
       let {keyboardDelegate} = localState.props;
       let nextKey: Key | null | undefined;
-      if (target?.type === 'item') {
-        nextKey = horizontal ? keyboardDelegate.getKeyLeftOf?.(target.key) : keyboardDelegate.getKeyAbove?.(target.key);
-      } else {
-        nextKey = horizontal && direction === 'rtl' ? keyboardDelegate.getFirstKey?.() : keyboardDelegate.getLastKey?.();
-      }
       let dropPositions = horizontal && direction === 'rtl' ? DROP_POSITIONS_RTL : DROP_POSITIONS;
       let dropPosition: DropPosition = !target || target.type === 'root' ? dropPositions[2] : 'on';
 
       if (target?.type === 'item') {
-        // If the the keyboard delegate returned the previous key in the collection,
-        // first try the other positions in the current key. Otherwise (e.g. in a grid layout),
-        // jump to the same drop position in the new key.
-        let prevCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyAfter(target.key) : localState.state.collection.getKeyBefore(target.key);
-        if ((nextKey == null || nextKey === prevCollectionKey) && (target.dropPosition === 'before' || !localState.state.selectionManager.isDisabled(target.key))) {
-          let positionIndex = dropPositions.indexOf(target.dropPosition);
-          let nextDropPosition = dropPositions[positionIndex - 1];
-          if (positionIndex > 0 && nextDropPosition !== dropPositions[2]) {
-            return {
-              type: 'item',
-              key: target.key,
-              dropPosition: nextDropPosition
-            };
-          }
+        let isTargetDisabled = localState.state.selectionManager.isDisabled(target.key);
+        let isTargetKeyFirstKey = target.key === localState.state.collection.getFirstKey();
+        let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyAfter(target.key) : localState.state.collection.getKeyBefore(target.key);
+        let isNextCollectionKeyDisabled = nextCollectionKey && localState.state.selectionManager.isDisabled(nextCollectionKey);
 
-          // If the last drop position was 'before', then 'after' on the previous key is equivalent.
-          // Switch to 'on' instead.
-          if (target.dropPosition === dropPositions[0]) {
-            dropPosition = 'on';
-          }
-        } else if (target.dropPosition === 'on' && nextKey !== prevCollectionKey) {
-          nextKey = target.key;
-          dropPosition = direction === 'rtl' ? 'after' : 'before';
-        } else if (target.dropPosition !== 'on') {
-          nextKey = prevCollectionKey;
-          dropPosition = target.dropPosition;
+        // item next key
+        // edge cases
+        if (isTargetKeyFirstKey && target.dropPosition === dropPositions[0]) {
+          return {
+            type: 'item',
+            key: localState.state.collection.getLastKey()!,
+            dropPosition: dropPositions[2]
+          };
+        } else if ((target.dropPosition === dropPositions[2] && isTargetKeyFirstKey && isTargetDisabled) || (target.dropPosition === dropPositions[1] && isTargetKeyFirstKey)) {
+          return {
+            type: 'item',
+            key: target.key,
+            dropPosition: dropPositions[0]
+          };
+          // general logic
+        } else if (target.dropPosition === dropPositions[0]) {
+          return {
+            type: 'item',
+            key: nextCollectionKey!,
+            dropPosition: isNextCollectionKeyDisabled ? dropPositions[0] : dropPositions[1]
+          };
+        } else if (target.dropPosition === dropPositions[1]) {
+          return {
+            type: 'item',
+            key: nextCollectionKey!,
+            dropPosition: dropPositions[2]
+          };
+        } else if (target.dropPosition === dropPositions[2]) {
+          return {
+            type: 'item',
+            key: isTargetDisabled ? nextCollectionKey! : target.key,
+            dropPosition: isTargetDisabled ? dropPositions[2] : dropPositions[1]
+          };
         } else {
-          dropPosition = target.dropPosition;
+          console.warn('How did you get here?', target.dropPosition);
         }
+      } else {
+        nextKey = horizontal && direction === 'rtl' ? keyboardDelegate.getFirstKey?.() : keyboardDelegate.getLastKey?.();
       }
 
       if (nextKey == null) {

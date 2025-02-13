@@ -149,7 +149,7 @@ export const ListBoxDnd = (props: ListBoxProps<typeof albums[0]>) => {
       aria-label="Albums"
       items={list.items}
       selectionMode="multiple"
-      disabledKeys={[3, 5]}
+      disabledKeys={[3]}
       dragAndDropHooks={dragAndDropHooks}>
       {item => (
         <ListBoxItem>
