@@ -372,45 +372,96 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
 
       if (target.type === 'item') {
         let isTargetDisabled = localState.state.selectionManager.isDisabled(target.key);
-        let isTargetKeyLastKey = target.key === localState.state.collection.getLastKey();
-        let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyBefore(target.key) : localState.state.collection.getKeyAfter(target.key);
-        let isNextCollectionKeyDisabled = nextCollectionKey && localState.state.selectionManager.isDisabled(nextCollectionKey);
 
-        // item next key
-        // edge cases
-        if (isTargetKeyLastKey && target.dropPosition === dropPositions[2]) {
-          return {
-            type: 'item',
-            key: localState.state.collection.getFirstKey()!,
-            dropPosition: dropPositions[0]
-          };
-        } else if ((target.dropPosition === dropPositions[0] && isTargetKeyLastKey && isTargetDisabled) || (target.dropPosition === dropPositions[1] && isTargetKeyLastKey)) {
-          return {
-            type: 'item',
-            key: target.key,
-            dropPosition: dropPositions[2]
-          };
-          // general logic
-        }  else if (target.dropPosition === dropPositions[0]) {
-          return {
-            type: 'item',
-            key: isTargetDisabled ? nextCollectionKey! : target.key,
-            dropPosition: isTargetDisabled ? dropPositions[0] : dropPositions[1]
-          };
-        } else if (target.dropPosition === dropPositions[1]) {
-          return {
-            type: 'item',
-            key: nextCollectionKey!,
-            dropPosition: dropPositions[0]
-          };
-        } else if (target.dropPosition === dropPositions[2]) {
-          return {
-            type: 'item',
-            key: nextCollectionKey!,
-            dropPosition: isNextCollectionKeyDisabled ? dropPositions[2] : dropPositions[1]
-          };
+        if (keyboardDelegate.layout === 'stack') {
+          let isTargetKeyLastKey = target.key === localState.state.collection.getLastKey();
+          let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyBefore(target.key) : localState.state.collection.getKeyAfter(target.key);
+          let isNextCollectionKeyDisabled = nextCollectionKey && localState.state.selectionManager.isDisabled(nextCollectionKey);
+
+          // item next key
+          // edge cases
+          if (isTargetKeyLastKey && target.dropPosition === dropPositions[2]) {
+            return {
+              type: 'item',
+              key: localState.state.collection.getFirstKey()!,
+              dropPosition: dropPositions[0]
+            };
+          } else if ((target.dropPosition === dropPositions[0] && isTargetKeyLastKey && isTargetDisabled) || (target.dropPosition === dropPositions[1] && isTargetKeyLastKey)) {
+            return {
+              type: 'item',
+              key: target.key,
+              dropPosition: dropPositions[2]
+            };
+            // general logic
+          }  else if (target.dropPosition === dropPositions[0]) {
+            return {
+              type: 'item',
+              key: isTargetDisabled ? nextCollectionKey! : target.key,
+              dropPosition: isTargetDisabled ? dropPositions[0] : dropPositions[1]
+            };
+          } else if (target.dropPosition === dropPositions[1]) {
+            return {
+              type: 'item',
+              key: nextCollectionKey!,
+              dropPosition: dropPositions[0]
+            };
+          } else if (target.dropPosition === dropPositions[2]) {
+            return {
+              type: 'item',
+              key: nextCollectionKey!,
+              dropPosition: isNextCollectionKeyDisabled ? dropPositions[2] : dropPositions[1]
+            };
+          } else {
+            console.warn('How did you get here?', target.dropPosition);
+          }
         } else {
-          console.warn('How did you get here?', target.dropPosition);
+          let nextKey: Key | null | undefined;
+          let isOrientationHorizontal = keyboardDelegate.orientation === 'horizontal';
+          let skipDisabled = target.dropPosition === 'on';
+          if (horizontal) {
+            nextKey = direction === 'rtl' ? keyboardDelegate.getKeyLeftOf?.(target.key, skipDisabled) : keyboardDelegate.getKeyRightOf?.(target.key, skipDisabled);
+          } else {
+            nextKey = keyboardDelegate.getKeyBelow?.(target.key, skipDisabled);
+          }
+
+          let isNextKeyDisabled = nextKey && localState.state.selectionManager.isDisabled(nextKey);
+
+          if (!nextKey) {
+            nextKey = localState.state.collection.getFirstKey();
+          }
+
+          console.log(nextKey, target.dropPosition);
+
+          if ((isOrientationHorizontal && horizontal) || (!isOrientationHorizontal && !horizontal)) {
+            return {
+              type: 'item',
+              key: nextKey!,
+              dropPosition: target.dropPosition
+            };
+          }
+
+          // grid logic
+          if (target.dropPosition === dropPositions[0]) {
+            return {
+              type: 'item',
+              key: isTargetDisabled ? nextKey! : target.key,
+              dropPosition: isTargetDisabled ? dropPositions[0] : dropPositions[1]
+            };
+          } else if (target.dropPosition === dropPositions[1]) {
+            return {
+              type: 'item',
+              key: nextKey!,
+              dropPosition: dropPositions[0]
+            };
+          } else if (target.dropPosition === dropPositions[2]) {
+            return {
+              type: 'item',
+              key: nextKey!,
+              dropPosition: isNextKeyDisabled ? dropPositions[2] : dropPositions[1]
+            };
+          } else {
+            console.warn('How did you get here?', target.dropPosition);
+          }
         }
       } else {
         nextKey = horizontal && direction === 'rtl' ? keyboardDelegate.getLastKey?.() : keyboardDelegate.getFirstKey?.();
