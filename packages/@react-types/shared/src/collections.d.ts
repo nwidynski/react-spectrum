@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {Key} from '@react-types/shared';
+import {Key, Orientation} from '@react-types/shared';
 import {LinkDOMProps} from './dom';
 import {ReactElement, ReactNode} from 'react';
 
@@ -95,17 +95,21 @@ export interface SortDescriptor {
 export type SortDirection = 'ascending' | 'descending';
 
 export interface KeyboardDelegate {
+  isEdgeOfRow(key: Key, nextKey: Key): boolean,
+  isEdgeOfColumn(key: Key, nextKey: Key): boolean,
+  layout: 'stack' | 'grid',
+  orientation?: Orientation | undefined,
   /** Returns the key visually below the given one, or `null` for none. */
-  getKeyBelow?(key: Key): Key | null,
+  getKeyBelow?(key: Key, skipDisabled?: boolean): Key | null,
 
   /** Returns the key visually above the given one, or `null` for none. */
-  getKeyAbove?(key: Key): Key | null,
+  getKeyAbove?(key: Key, skipDisabled?: boolean): Key | null,
 
   /** Returns the key visually to the left of the given one, or `null` for none. */
-  getKeyLeftOf?(key: Key): Key | null,
+  getKeyLeftOf?(key: Key, skipDisabled?: boolean): Key | null,
 
   /** Returns the key visually to the right of the given one, or `null` for none. */
-  getKeyRightOf?(key: Key): Key | null,
+  getKeyRightOf?(key: Key, skipDisabled?: boolean): Key | null,
 
   /** Returns the key visually one page below the given one, or `null` for none. */
   getKeyPageBelow?(key: Key): Key | null,

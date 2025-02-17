@@ -32,8 +32,8 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
   private disabledBehavior: DisabledBehavior;
   private ref: RefObject<HTMLElement | null>;
   private collator: Intl.Collator | undefined;
-  private layout: 'stack' | 'grid';
-  private orientation?: Orientation;
+  public layout: 'stack' | 'grid';
+  public orientation?: Orientation;
   private direction?: Direction;
   private layoutDelegate: LayoutDelegate;
 
@@ -88,16 +88,16 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     return null;
   }
 
-  getNextKey(key: Key) {
+  getNextKey(key: Key, skipDisabled = true) {
     let nextKey: Key | null = key;
     nextKey = this.collection.getKeyAfter(nextKey);
-    return this.findNextNonDisabled(nextKey, key => this.collection.getKeyAfter(key));
+    return skipDisabled ? this.findNextNonDisabled(nextKey, key => this.collection.getKeyAfter(key)) : nextKey;
   }
 
-  getPreviousKey(key: Key) {
+  getPreviousKey(key: Key, skipDisabled = true) {
     let nextKey: Key | null = key;
     nextKey = this.collection.getKeyBefore(nextKey);
-    return this.findNextNonDisabled(nextKey, key => this.collection.getKeyBefore(key));
+    return skipDisabled ? this.findNextNonDisabled(nextKey, key => this.collection.getKeyBefore(key)) : nextKey;
   }
 
   private findKey(
@@ -132,63 +132,85 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     return prevRect.x === itemRect.x || prevRect.y !== itemRect.y;
   }
 
-  getKeyBelow(key: Key) {
+  isEdgeOfRow(key: Key, nextKey: Key) {
+    const keyRect = this.layoutDelegate.getItemRect(key);
+    const nextKeyRect = this.layoutDelegate.getItemRect(nextKey);
+
+    if (!keyRect || !nextKeyRect) { return false;}
+
+    const isSameRow = this.isSameRow(keyRect, nextKeyRect);
+
+    return !isSameRow;
+  }
+
+  isEdgeOfColumn(key: Key, nextKey: Key) {
+    const keyRect = this.layoutDelegate.getItemRect(key);
+    const nextKeyRect = this.layoutDelegate.getItemRect(nextKey);
+
+    if (!keyRect || !nextKeyRect) { return false;}
+
+    const isSameRow = this.isSameColumn(keyRect, nextKeyRect);
+
+    return !isSameRow;
+  }
+
+  getKeyBelow(key: Key, skipDisabled = true) {
     if (this.layout === 'grid' && this.orientation === 'vertical') {
-      return this.findKey(key, (key) => this.getNextKey(key), this.isSameRow);
+      return this.findKey(key, (key) => this.getNextKey(key, skipDisabled), this.isSameRow);
     } else {
-      return this.getNextKey(key);
+      return this.getNextKey(key, skipDisabled);
     }
   }
 
-  getKeyAbove(key: Key) {
+  getKeyAbove(key: Key, skipDisabled = true) {
     if (this.layout === 'grid' && this.orientation === 'vertical') {
-      return this.findKey(key, (key) => this.getPreviousKey(key), this.isSameRow);
+      return this.findKey(key, (key) => this.getPreviousKey(key, skipDisabled), this.isSameRow);
     } else {
-      return this.getPreviousKey(key);
+      return this.getPreviousKey(key, skipDisabled);
     }
   }
 
-  private getNextColumn(key: Key, right: boolean) {
-    return right ? this.getPreviousKey(key) : this.getNextKey(key);
+  private getNextColumn(key: Key, right: boolean, skipDisabled = true) {
+    return right ? this.getPreviousKey(key, skipDisabled) : this.getNextKey(key, skipDisabled);
   }
 
-  getKeyRightOf?(key: Key) {
+  getKeyRightOf?(key: Key, skipDisabled = true) {
     // This is a temporary solution for CardView until we refactor useSelectableCollection.
     // https://github.com/orgs/adobe/projects/19/views/32?pane=issue&itemId=77825042
     let layoutDelegateMethod = this.direction === 'ltr' ? 'getKeyRightOf' : 'getKeyLeftOf';
     if (this.layoutDelegate[layoutDelegateMethod]) {
       key = this.layoutDelegate[layoutDelegateMethod](key);
-      return this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key));
+      return skipDisabled ? this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key)) : this.layoutDelegate[layoutDelegateMethod](key);
     }
 
     if (this.layout === 'grid') {
       if (this.orientation === 'vertical') {
-        return this.getNextColumn(key, this.direction === 'rtl');
+        return this.getNextColumn(key, this.direction === 'rtl', skipDisabled);
       } else {
-        return this.findKey(key, (key) => this.getNextColumn(key, this.direction === 'rtl'), this.isSameColumn);
+        return this.findKey(key, (key) => this.getNextColumn(key, this.direction === 'rtl', skipDisabled), this.isSameColumn);
       }
     } else if (this.orientation === 'horizontal') {
-      return this.getNextColumn(key, this.direction === 'rtl');
+      return this.getNextColumn(key, this.direction === 'rtl', skipDisabled);
     }
 
     return null;
   }
 
-  getKeyLeftOf?(key: Key) {
+  getKeyLeftOf?(key: Key, skipDisabled = true) {
     let layoutDelegateMethod = this.direction === 'ltr' ? 'getKeyLeftOf' : 'getKeyRightOf';
     if (this.layoutDelegate[layoutDelegateMethod]) {
       key = this.layoutDelegate[layoutDelegateMethod](key);
-      return this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key));
+      return skipDisabled ? this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key)) : this.layoutDelegate[layoutDelegateMethod](key) ;
     }
 
     if (this.layout === 'grid') {
       if (this.orientation === 'vertical') {
-        return this.getNextColumn(key, this.direction === 'ltr');
+        return this.getNextColumn(key, this.direction === 'ltr', skipDisabled);
       } else {
-        return this.findKey(key, (key) => this.getNextColumn(key, this.direction === 'ltr'), this.isSameColumn);
+        return this.findKey(key, (key) => this.getNextColumn(key, this.direction === 'ltr', skipDisabled), this.isSameColumn);
       }
     } else if (this.orientation === 'horizontal') {
-      return this.getNextColumn(key, this.direction === 'ltr');
+      return this.getNextColumn(key, this.direction === 'ltr', skipDisabled);
     }
 
     return null;
