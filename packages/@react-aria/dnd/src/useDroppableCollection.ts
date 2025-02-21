@@ -759,7 +759,7 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
     });
   }, [localState, ref, onDrop, direction]);
 
-  let id = useId(props.id);
+  let id = useId();
   droppableCollectionMap.set(state, {id, ref});
   return {
     collectionProps: mergeProps(dropProps, {
