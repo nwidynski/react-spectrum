@@ -32,8 +32,8 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
   private disabledBehavior: DisabledBehavior;
   private ref: RefObject<HTMLElement | null>;
   private collator: Intl.Collator | undefined;
-  public layout: 'stack' | 'grid';
-  public orientation?: Orientation;
+  private layout: 'stack' | 'grid';
+  private orientation?: Orientation;
   private direction?: Direction;
   private layoutDelegate: LayoutDelegate;
 

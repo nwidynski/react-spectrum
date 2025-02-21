@@ -95,8 +95,6 @@ export interface SortDescriptor {
 export type SortDirection = 'ascending' | 'descending';
 
 export interface KeyboardDelegate {
-  layout: 'stack' | 'grid',
-  orientation?: Orientation | undefined,
   /** Returns the key visually below the given one, or `null` for none. */
   getKeyBelow?(key: Key, skipDisabled?: boolean): Key | null,
 
