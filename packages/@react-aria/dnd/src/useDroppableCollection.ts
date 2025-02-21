@@ -714,7 +714,6 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           case 'ArrowDown': {
             if (keyboardDelegate.getKeyBelow) {
               let target = nextValidTarget(localState.state.target, types, drag.allowedDropOperations, getNextTarget);
-              console.log(target);
               localState.state.setTarget(target);
             }
             break;
@@ -722,7 +721,6 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           case 'ArrowUp': {
             if (keyboardDelegate.getKeyAbove) {
               let target = nextValidTarget(localState.state.target, types, drag.allowedDropOperations, getPreviousTarget);
-              console.log(target);
               localState.state.setTarget(target);
             }
             break;
@@ -730,7 +728,6 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           case 'ArrowLeft': {
             if (keyboardDelegate.getKeyLeftOf) {
               let target = nextValidTarget(localState.state.target, types, drag.allowedDropOperations, (target, wrap) => getPreviousTarget(target, wrap, true));
-              console.log(target);
               localState.state.setTarget(target);
             }
             break;
@@ -738,7 +735,6 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
           case 'ArrowRight': {
             if (keyboardDelegate.getKeyRightOf) {
               let target = nextValidTarget(localState.state.target, types, drag.allowedDropOperations, (target, wrap) => getNextTarget(target, wrap, true));
-              console.log(target);
               localState.state.setTarget(target);
             }
             break;
