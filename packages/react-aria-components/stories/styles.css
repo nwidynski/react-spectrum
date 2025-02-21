@@ -183,9 +183,9 @@
   :global(.react-aria-ListBoxItem) {
     display: grid;
     grid-template-areas: "image ."
-      "image title"
-      "image description"
-      "image .";
+                         "image title"
+                         "image description"
+                         "image .";
     grid-template-columns: auto 1fr;
     grid-template-rows: 1fr auto auto 1fr;
     column-gap: 8px;
@@ -262,11 +262,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-
   &[data-orientation=vertical] {
     flex-direction: column;
   }
-
   &[data-orientation=horizontal] {
     flex-direction: row;
   }
@@ -374,7 +372,7 @@
 
   display: grid;
   grid-template-areas: "label value"
-    "bar bar";
+                       "bar bar";
   grid-template-columns: 1fr auto;
   gap: 4px;
   width: 250px;
@@ -403,7 +401,6 @@
     background-color: transparent;
     border: none;
   }
-
   :global(.react-aria-Header) {
     display: flex;
     align-items: center
