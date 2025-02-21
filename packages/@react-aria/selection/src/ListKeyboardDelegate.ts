@@ -132,28 +132,6 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     return prevRect.x === itemRect.x || prevRect.y !== itemRect.y;
   }
 
-  isEdgeOfRow(key: Key, nextKey: Key) {
-    const keyRect = this.layoutDelegate.getItemRect(key);
-    const nextKeyRect = this.layoutDelegate.getItemRect(nextKey);
-
-    if (!keyRect || !nextKeyRect) { return false;}
-
-    const isSameRow = this.isSameRow(keyRect, nextKeyRect);
-
-    return !isSameRow;
-  }
-
-  isEdgeOfColumn(key: Key, nextKey: Key) {
-    const keyRect = this.layoutDelegate.getItemRect(key);
-    const nextKeyRect = this.layoutDelegate.getItemRect(nextKey);
-
-    if (!keyRect || !nextKeyRect) { return false;}
-
-    const isSameRow = this.isSameColumn(keyRect, nextKeyRect);
-
-    return !isSameRow;
-  }
-
   getKeyBelow(key: Key, skipDisabled = true) {
     if (this.layout === 'grid' && this.orientation === 'vertical') {
       return this.findKey(key, (key) => this.getNextKey(key, skipDisabled), this.isSameRow);

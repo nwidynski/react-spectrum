@@ -95,8 +95,6 @@ export interface SortDescriptor {
 export type SortDirection = 'ascending' | 'descending';
 
 export interface KeyboardDelegate {
-  isEdgeOfRow(key: Key, nextKey: Key): boolean,
-  isEdgeOfColumn(key: Key, nextKey: Key): boolean,
   layout: 'stack' | 'grid',
   orientation?: Orientation | undefined,
   /** Returns the key visually below the given one, or `null` for none. */
