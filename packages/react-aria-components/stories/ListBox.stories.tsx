@@ -131,6 +131,9 @@ export const ListBoxDnd = (props: ListBoxProps<typeof albums[0]>) => {
 
   let {dragAndDropHooks} = useDragAndDrop({
     getItems: (keys) => [...keys].map(key => ({'text/plain': list.getItem(key)?.title ?? ''})),
+    onItemDrop(e) {
+      console.log('onItemDrop', e);
+    },
     onReorder(e) {
       if (e.target.dropPosition === 'before') {
         list.moveBefore(e.target.key, e.keys);
@@ -146,6 +149,7 @@ export const ListBoxDnd = (props: ListBoxProps<typeof albums[0]>) => {
       aria-label="Albums"
       items={list.items}
       selectionMode="multiple"
+      disabledKeys={[3]}
       dragAndDropHooks={dragAndDropHooks}>
       {item => (
         <ListBoxItem>

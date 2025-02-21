@@ -22,6 +22,14 @@
   }
 }
 
+[data-disabled] {
+  opacity: 0.5;
+}
+
+[data-drop-target="true"] {
+  background-color: lightgreen !important;
+}
+
 
 .my-modal {
   position: fixed;
