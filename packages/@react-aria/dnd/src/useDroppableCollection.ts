@@ -381,9 +381,25 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
         // jump to the same drop position in the new key.
         let isCurrentDisabled = localState.state.selectionManager.isDisabled(target.key);
         let nextCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyBefore(target.key) : localState.state.collection.getKeyAfter(target.key);
+        const nextItemType = nextCollectionKey && localState.state.collection.getItem(nextCollectionKey)?.type;
+        let positionIndex = dropPositions.indexOf(target.dropPosition);
+        let nextDropPosition = dropPositions[positionIndex + 1];
+        if (nextItemType && nextItemType !== 'item') {
+          if (target.dropPosition !== dropPositions[2]) {
+            return {
+              type: 'item',
+              key: target.key,
+              dropPosition: nextDropPosition
+            };
+          } else if (nextKey && target.dropPosition === dropPositions[2]) {
+            return {
+              type: 'item',
+              key: nextKey,
+              dropPosition: dropPositions[0]
+            };
+          }
+        }
         if (nextKey == null || nextKey === nextCollectionKey) {
-          let positionIndex = dropPositions.indexOf(target.dropPosition);
-          let nextDropPosition = dropPositions[positionIndex + 1];
           if (positionIndex < dropPositions.length - 1 && !(nextDropPosition === dropPositions[2] && nextKey != null) && !(isCurrentDisabled && nextDropPosition === dropPositions[1])) {
             return {
               type: 'item',
@@ -439,9 +455,25 @@ export function useDroppableCollection(props: DroppableCollectionOptions, state:
         // first try the other positions in the current key. Otherwise (e.g. in a grid layout),
         // jump to the same drop position in the new key.
         let prevCollectionKey = horizontal && direction === 'rtl' ? localState.state.collection.getKeyAfter(target.key) : localState.state.collection.getKeyBefore(target.key);
+        const nextItemType = prevCollectionKey && localState.state.collection.getItem(prevCollectionKey)?.type;
+        let positionIndex = dropPositions.indexOf(target.dropPosition);
+        let nextDropPosition = dropPositions[positionIndex - 1];
+        if (nextItemType && nextItemType !== 'item') {
+          if (target.dropPosition !== dropPositions[0]) {
+            return {
+              type: 'item',
+              key: target.key,
+              dropPosition: nextDropPosition
+            };
+          } else if (nextKey && target.dropPosition === dropPositions[0]) {
+            return {
+              type: 'item',
+              key: nextKey,
+              dropPosition: dropPositions[2]
+            };
+          }
+        }
         if (nextKey == null || nextKey === prevCollectionKey) {
-          let positionIndex = dropPositions.indexOf(target.dropPosition);
-          let nextDropPosition = dropPositions[positionIndex - 1];
           if (positionIndex > 0 && nextDropPosition !== dropPositions[2]) {
             return {
               type: 'item',

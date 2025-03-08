@@ -74,12 +74,14 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     return this.disabledBehavior === 'all' && (item.props?.isDisabled || this.disabledKeys.has(item.key));
   }
 
-  private findNextNonDisabled(key: Key | null, getNext: (key: Key) => Key | null): Key | null {
+  private findNextNonDisabled(key: Key | null, getNext: (key: Key) => Key | null, skipDisabled = true): Key | null {
     let nextKey = key;
     while (nextKey != null) {
       let item = this.collection.getItem(nextKey);
-      if (item?.type === 'item' && !this.isDisabled(item)) {
-        return nextKey;
+      if (item?.type === 'item') {
+        if ((skipDisabled && !this.isDisabled(item)) || !skipDisabled) {
+          return nextKey;
+        }
       }
 
       nextKey = getNext(nextKey);
@@ -91,13 +93,13 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
   getNextKey(key: Key, skipDisabled = true) {
     let nextKey: Key | null = key;
     nextKey = this.collection.getKeyAfter(nextKey);
-    return skipDisabled ? this.findNextNonDisabled(nextKey, key => this.collection.getKeyAfter(key)) : nextKey;
+    return this.findNextNonDisabled(nextKey, key => this.collection.getKeyAfter(key), skipDisabled);
   }
 
   getPreviousKey(key: Key, skipDisabled = true) {
     let nextKey: Key | null = key;
     nextKey = this.collection.getKeyBefore(nextKey);
-    return skipDisabled ? this.findNextNonDisabled(nextKey, key => this.collection.getKeyBefore(key)) : nextKey;
+    return this.findNextNonDisabled(nextKey, key => this.collection.getKeyBefore(key), skipDisabled);
   }
 
   private findKey(
@@ -158,7 +160,7 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     let layoutDelegateMethod = this.direction === 'ltr' ? 'getKeyRightOf' : 'getKeyLeftOf';
     if (this.layoutDelegate[layoutDelegateMethod]) {
       key = this.layoutDelegate[layoutDelegateMethod](key);
-      return skipDisabled ? this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key)) : this.layoutDelegate[layoutDelegateMethod](key);
+      return this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key), skipDisabled);
     }
 
     if (this.layout === 'grid') {
@@ -178,7 +180,7 @@ export class ListKeyboardDelegate<T> implements KeyboardDelegate {
     let layoutDelegateMethod = this.direction === 'ltr' ? 'getKeyLeftOf' : 'getKeyRightOf';
     if (this.layoutDelegate[layoutDelegateMethod]) {
       key = this.layoutDelegate[layoutDelegateMethod](key);
-      return skipDisabled ? this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key)) : this.layoutDelegate[layoutDelegateMethod](key) ;
+      return this.findNextNonDisabled(key, key => this.layoutDelegate[layoutDelegateMethod](key), skipDisabled);
     }
 
     if (this.layout === 'grid') {

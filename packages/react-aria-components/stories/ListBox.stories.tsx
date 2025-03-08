@@ -56,22 +56,29 @@ ListBoxExample.story = {
 
 // Known accessibility false positive: https://github.com/adobe/react-spectrum/wiki/Known-accessibility-false-positives#listbox
 // also has a aXe landmark error, not sure what it means
-export const ListBoxSections = () => (
-  <ListBox className={styles.menu} selectionMode="multiple" selectionBehavior="replace" aria-label="test listbox with section">
-    <ListBoxSection className={styles.group}>
-      <Header style={{fontSize: '1.2em'}}>Section 1</Header>
-      <MyListBoxItem>Foo</MyListBoxItem>
-      <MyListBoxItem>Bar</MyListBoxItem>
-      <MyListBoxItem>Baz</MyListBoxItem>
-    </ListBoxSection>
-    <Separator style={{borderTop: '1px solid gray', margin: '2px 5px'}} />
-    <ListBoxSection className={styles.group} aria-label="Section 2">
-      <MyListBoxItem>Foo</MyListBoxItem>
-      <MyListBoxItem>Bar</MyListBoxItem>
-      <MyListBoxItem>Baz</MyListBoxItem>
-    </ListBoxSection>
-  </ListBox>
-);
+export const ListBoxSections = () => {
+  const {dragAndDropHooks} = useDragAndDrop({
+    getItems: (keys) =>
+      [...keys].map((key) => ({ 'text/plain': key as string })),
+    onDrop: () => {}
+  });
+  return (
+    <ListBox dragAndDropHooks={dragAndDropHooks} className={styles.menu} aria-label="test listbox with section">
+      <ListBoxSection className={styles.group}>
+        <Header style={{fontSize: '1.2em'}}>Section 1</Header>
+        <MyListBoxItem>Foo</MyListBoxItem>
+        <MyListBoxItem>Bar</MyListBoxItem>
+        <MyListBoxItem>Baz</MyListBoxItem>
+      </ListBoxSection>
+      <Separator style={{borderTop: '1px solid gray', margin: '2px 5px'}} />
+      <ListBoxSection className={styles.group} aria-label="Section 2">
+        <Header style={{fontSize: '1.2em'}}>Section 2</Header>
+        <MyListBoxItem>Foo</MyListBoxItem>
+        <MyListBoxItem>Bar</MyListBoxItem>
+        <MyListBoxItem>Baz</MyListBoxItem>
+      </ListBoxSection>
+    </ListBox>);
+};
 
 export const ListBoxComplex = () => (
   <ListBox className={styles.menu} selectionMode="multiple" selectionBehavior="replace" aria-label="listbox complex">
