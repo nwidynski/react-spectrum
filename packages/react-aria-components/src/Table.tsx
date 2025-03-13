@@ -1,4 +1,4 @@
-import {AriaLabelingProps, HoverEvents, Key, LinkDOMProps, RefObject} from '@react-types/shared';
+import {AriaLabelingProps, FocusStrategy, HoverEvents, Key, LinkDOMProps, RefObject} from '@react-types/shared';
 import {BaseCollection, Collection, CollectionBuilder, CollectionNode, createBranchComponent, createLeafComponent, useCachedChildren} from '@react-aria/collections';
 import {buildHeaderRows, TableColumnResizeState} from '@react-stately/table';
 import {ButtonContext} from './Button';
@@ -324,7 +324,11 @@ export interface TableProps extends Omit<SharedTableProps<any>, 'children'>, Sty
   /** Handler that is called when a user performs an action on the row. */
   onRowAction?: (key: Key) => void,
   /** The drag and drop hooks returned by `useDragAndDrop` used to enable drag and drop behavior for the Table. */
-  dragAndDropHooks?: DragAndDropHooks
+  dragAndDropHooks?: DragAndDropHooks,
+  /** Whether to auto focus the listbox or an option. */
+  autoFocus?: boolean | FocusStrategy,
+  /** Whether focus should wrap around when the end/start is reached. */
+  shouldFocusWrap?: boolean
 }
 
 /**

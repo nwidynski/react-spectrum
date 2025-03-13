@@ -535,7 +535,7 @@ function MyTableBody(props) {
 
 const TableLoadingBodyWrapper = (args: {isLoadingMore: boolean}) => {
   return (
-    <Table aria-label="Files">
+    <Table autoFocus={'first'} shouldFocusWrap aria-label="Files">
       <TableHeader columns={columns}>
         {(column) => (
           <Column isRowHeader={column.isRowHeader}>{column.name}</Column>
