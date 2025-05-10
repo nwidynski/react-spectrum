@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {AriaLabelingProps, DOMAttributes, DOMProps, Key, KeyboardDelegate, RefObject} from '@react-types/shared';
+import {AriaLabelingProps, DOMAttributes, DOMProps, FocusStrategy, Key, KeyboardDelegate, RefObject} from '@react-types/shared';
 import {filterDOMProps, mergeProps, useId} from '@react-aria/utils';
 import {GridCollection} from '@react-types/grid';
 import {GridKeyboardDelegate} from './GridKeyboardDelegate';
@@ -41,6 +41,10 @@ export interface GridProps extends DOMProps, AriaLabelingProps {
    * @default 'row'
    */
   focusMode?: 'row' | 'cell',
+  /** Whether to auto focus the listbox or an option. */
+  autoFocus?: boolean | FocusStrategy,
+  /** Whether focus should wrap around when the end/start is reached. */
+  shouldFocusWrap?: boolean,
   /**
    * A function that returns the text that should be announced by assistive technology when a row is added or removed from selection.
    * @default (key) => state.collection.getItem(key)?.textValue
@@ -81,6 +85,8 @@ export interface GridAria {
  */
 export function useGrid<T>(props: GridProps, state: GridState<T, GridCollection<T>>, ref: RefObject<HTMLElement | null>): GridAria {
   let {
+    autoFocus,
+    shouldFocusWrap,
     isVirtualized,
     disallowTypeAhead,
     keyboardDelegate,
@@ -114,6 +120,8 @@ export function useGrid<T>(props: GridProps, state: GridState<T, GridCollection<
   }), [keyboardDelegate, state.collection, state.disabledKeys, disabledBehavior, ref, direction, collator, focusMode]);
 
   let {collectionProps} = useSelectableCollection({
+    autoFocus,
+    shouldFocusWrap,
     ref,
     selectionManager: manager,
     keyboardDelegate: delegate,
