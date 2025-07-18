@@ -348,7 +348,7 @@ export const Table = forwardRef(function Table(props: TableProps, ref: Forwarded
   );
 
   return (
-    <CollectionBuilder content={content} createCollection={() => new TableCollection<any>()}>
+    <CollectionBuilder content={content} createCollection={() => new TableCollection<any>()} collectionRef={ref}>
       {collection => <TableInner props={props} forwardedRef={ref as any} selectionState={selectionState} collection={collection} />}
     </CollectionBuilder>
   );
@@ -1359,7 +1359,7 @@ export interface TableLoadMoreItemProps extends Omit<LoadMoreSentinelProps, 'col
   isLoading?: boolean
 }
 
-export const TableLoadMoreItem = createLeafComponent('loader', function TableLoadingIndicator<T extends object>(props: TableLoadMoreItemProps, ref: ForwardedRef<HTMLTableRowElement>, item: Node<T>) {
+export const TableLoadMoreItem = createLeafComponent('loader', function TableLoadingIndicator(props: TableLoadMoreItemProps, ref: ForwardedRef<HTMLTableRowElement>, item: Node<object>) {
   let state = useContext(TableStateContext)!;
   let {isVirtualized} = useContext(CollectionRendererContext);
   let {isLoading, onLoadMore, scrollOffset, ...otherProps} = props;
@@ -1411,7 +1411,7 @@ export const TableLoadMoreItem = createLeafComponent('loader', function TableLoa
           {...mergeProps(filterDOMProps(props, {global: true}), rowProps)}
           {...renderProps}
           role="row"
-          ref={ref as any}>
+          ref={ref as ForwardedRef<HTMLTableRowElement>}>
           <TD role="rowheader" {...rowHeaderProps} style={style}>
             {renderProps.children}
           </TD>
