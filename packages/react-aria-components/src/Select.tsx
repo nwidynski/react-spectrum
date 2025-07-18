@@ -14,9 +14,9 @@ import {AriaSelectProps, HiddenSelect, useFocusRing, useLocalizedStringFormatter
 import {ButtonContext} from './Button';
 import {Collection, Node, SelectState, useSelectState} from 'react-stately';
 import {CollectionBuilder} from '@react-aria/collections';
-import {ContextValue, Provider, RACValidation, removeDataAttributes, RenderProps, SlotProps, useContextProps, useRenderProps, useSlot, useSlottedContext} from './utils';
+import {ContextValue, Provider, RACValidation, removeDataAttributes, RenderProps, SlotProps, useContextProps, useRenderProps, useSlottedContext} from './utils';
 import {FieldErrorContext} from './FieldError';
-import {filterDOMProps, mergeProps, useResizeObserver} from '@react-aria/utils';
+import {filterDOMProps, mergeProps, useResizeObserver, useSlot} from '@react-aria/utils';
 import {FormContext} from './Form';
 import {forwardRefType, GlobalDOMAttributes} from '@react-types/shared';
 // @ts-ignore
