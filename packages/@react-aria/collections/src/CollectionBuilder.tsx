@@ -17,9 +17,9 @@ import {createPortal} from 'react-dom';
 import {FocusableContext} from '@react-aria/interactions';
 import {forwardRefType, Node} from '@react-types/shared';
 import {Hidden} from './Hidden';
+import {mergeRefs, useLayoutEffect} from '@react-aria/utils';
 import React, {createContext, ForwardedRef, forwardRef, JSX, ReactElement, ReactNode, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {useIsSSR} from '@react-aria/ssr';
-import {useLayoutEffect} from '@react-aria/utils';
 import {useSyncExternalStore as useSyncExternalStoreShim} from 'use-sync-external-store/shim/index.js';
 
 const ShallowRenderContext = createContext(false);
@@ -127,7 +127,7 @@ function useCollectionDocument<T extends object, C extends BaseCollection<T>>(cr
 
 const SSRContext = createContext<BaseNode<any> | null>(null);
 
-function useSSRCollectionNode<T extends Element>(Type: string, props: object, ref: ForwardedRef<T>, rendered?: any, children?: ReactNode, render?: (node: Node<T>) => ReactElement) {
+function useSSRCollectionNode<T extends Element>(Type: string, props: object, ref: ForwardedRef<T>, rendered?: any, children?: ReactNode, render?: (node: Node<T>, ref?: ForwardedRef<T>) => ReactElement) {
   // During SSR, portals are not supported, so the collection children will be wrapped in an SSRContext.
   // Since SSR occurs only once, we assume that the elements are rendered in order and never re-render.
   // Therefore we can create elements in our collection document during render so that they are in the
@@ -161,7 +161,7 @@ function useSSRCollectionNode<T extends Element>(Type: string, props: object, re
 export function createLeafComponent<T extends object, P extends object, E extends Element>(type: string, render: (props: P, ref: ForwardedRef<E>) => ReactElement | null): (props: P & React.RefAttributes<E>) => ReactElement | null;
 export function createLeafComponent<T extends object, P extends object, E extends Element>(type: string, render: (props: P, ref: ForwardedRef<E>, node: Node<T>) => ReactElement | null): (props: P & React.RefAttributes<E>) => ReactElement | null;
 export function createLeafComponent<P extends object, E extends Element>(type: string, render: (props: P, ref: ForwardedRef<E>, node?: any) => ReactElement | null): (props: P & React.RefAttributes<any>) => ReactElement | null {
-  let Component = ({node}) => render(node.props, node.props.ref, node);
+  let Component = (forwardRef as forwardRefType)(({node}: {node: Node<any>}, ref: ForwardedRef<E>) => render(node.props, mergeRefs(node.props.ref, ref), node));
   let Result = (forwardRef as forwardRefType)((props: P, ref: ForwardedRef<E>) => {
     let focusableProps = useContext(FocusableContext);
     let isShallow = useContext(ShallowRenderContext);
@@ -178,10 +178,10 @@ export function createLeafComponent<P extends object, E extends Element>(type: s
       ref,
       'children' in props ? props.children : null,
       null,
-      node => (
+      (node, ref) => (
         // Forward FocusableContext to real DOM tree so tooltips work.
         <FocusableContext.Provider value={focusableProps}>
-          <Component node={node} />
+          <Component node={node} ref={ref} />
         </FocusableContext.Provider>
       )
     );

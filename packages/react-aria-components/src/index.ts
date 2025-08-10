@@ -66,6 +66,7 @@ export {Switch, SwitchContext} from './Switch';
 export {TableLoadMoreItem, Table, Row, Cell, Column, ColumnResizer, TableHeader, TableBody, TableContext, ResizableTableContainer, useTableOptions, TableStateContext, TableColumnResizeStateContext} from './Table';
 export {TableLayout} from './TableLayout';
 export {Tabs, TabList, TabPanel, Tab, TabsContext, TabListStateContext} from './Tabs';
+export {Carousel, CarouselContext} from './Carousel';
 export {TagGroup, TagGroupContext, TagList, TagListContext, Tag} from './TagGroup';
 export {Text, TextContext} from './Text';
 export {TextArea, TextAreaContext} from './TextArea';
@@ -79,6 +80,7 @@ export {TreeLoadMoreItem, Tree, TreeItem, TreeContext, TreeItemContent, TreeStat
 export {useDragAndDrop} from './useDragAndDrop';
 export {DropIndicator, DropIndicatorContext, DragAndDropContext} from './DragAndDrop';
 export {Virtualizer} from './Virtualizer';
+export {Rotator, RotatorTabList, RotatorTab} from './Rotator';
 export {DIRECTORY_DRAG_TYPE, isDirectoryDropItem, isFileDropItem, isTextDropItem, SSRProvider, RouterProvider, I18nProvider, useLocale, useFilter, Pressable, Focusable} from 'react-aria';
 export {FormValidationContext, parseColor, getColorChannels, ToastQueue as UNSTABLE_ToastQueue} from 'react-stately';
 export {ListLayout, GridLayout, WaterfallLayout} from '@react-stately/layout';

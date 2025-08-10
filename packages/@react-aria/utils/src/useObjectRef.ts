@@ -50,6 +50,10 @@ export function useObjectRef<T>(ref?: ((instance: T | null) => (() => void) | vo
   return useMemo(
     () => ({
       get current() {
+        if (ref && typeof ref === 'object') {
+          return ref.current;
+        }
+        
         return objRef.current;
       },
       set current(value) {
@@ -64,6 +68,6 @@ export function useObjectRef<T>(ref?: ((instance: T | null) => (() => void) | vo
         }
       }
     }),
-    [refEffect]
+    [ref, refEffect]
   );
 }

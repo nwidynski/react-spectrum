@@ -30,14 +30,16 @@ export class DOMLayoutDelegate implements LayoutDelegate {
       return null;
     }
 
-    let containerRect = container.getBoundingClientRect();
-    let itemRect = item.getBoundingClientRect();
+    let rect = item.getBoundingClientRect();
+
+    let borderAdjustedX = rect.left - container.offsetLeft - container.clientLeft;
+    let borderAdjustedY = rect.top - container.offsetTop - container.clientTop;
 
     return {
-      x: itemRect.left - containerRect.left + container.scrollLeft,
-      y: itemRect.top - containerRect.top + container.scrollTop,
-      width: itemRect.width,
-      height: itemRect.height
+      x: borderAdjustedX,
+      y: borderAdjustedY,
+      width: rect.width,
+      height: rect.height
     };
   }
 
@@ -54,8 +56,8 @@ export class DOMLayoutDelegate implements LayoutDelegate {
     return {
       x: container?.scrollLeft ?? 0,
       y: container?.scrollTop ?? 0,
-      width: container?.offsetWidth ?? 0,
-      height: container?.offsetHeight ?? 0
+      width: container?.clientWidth ?? 0,
+      height: container?.clientHeight ?? 0
     };
   }
 }
