@@ -11,7 +11,7 @@
  */
 
 import {ForwardedRef, ReactElement, ReactNode} from 'react';
-import {Key} from '@react-types/shared';
+import {Key, Orientation} from '@react-types/shared';
 import {LinkDOMProps} from './dom';
 
 export interface ItemProps<T> extends LinkDOMProps {
@@ -95,6 +95,9 @@ export interface SortDescriptor {
 export type SortDirection = 'ascending' | 'descending';
 
 export interface KeyboardDelegate {
+  /** Returns the orientation of the keyboard delegate. */
+  getOrientation?(): Orientation | null,
+
   /** Returns the key visually below the given one, or `null` for none. */
   getKeyBelow?(key: Key): Key | null,
 
@@ -144,7 +147,9 @@ export interface LayoutDelegate {
   /** Returns the size of the scrollable content in the collection. */
   getContentSize(): Size,
   /** Returns a list of keys between `from` and `to`. */
-  getKeyRange?(from: Key, to: Key): Key[]
+  getKeyRange?(from: Key, to: Key): Key[],
+  /** Returns the orientation of the layout. */
+  getOrientation?(): Orientation | null
 }
 
 /**
