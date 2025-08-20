@@ -55,6 +55,7 @@
     "@react-aria/selection": "^3.25.0",
     "@react-aria/ssr": "^3.9.10",
     "@react-aria/tabs": "^3.10.6",
+    "@react-aria/textfield": "^3.18.0",
     "@react-aria/toolbar": "3.0.0-beta.19",
     "@react-aria/utils": "^3.30.0",
     "@react-aria/virtualizer": "^4.1.8",
