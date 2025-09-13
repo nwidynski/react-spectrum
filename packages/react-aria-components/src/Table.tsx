@@ -1,5 +1,5 @@
 import { AriaLabelingProps, GlobalDOMAttributes, HoverEvents, Key, LinkDOMProps, PressEvents, RefObject } from '@react-types/shared';
-import { BaseCollection, Collection, CollectionBuilder, CollectionNode, createBranchComponent, createLeafComponent, FilterLessNode, LoaderNode, useCachedChildren } from '@react-aria/collections';
+import { BaseCollection, Collection, CollectionBuilder, CollectionNode, createBranchComponent, createLeafComponent, FilterableNode, LoaderNode, useCachedChildren } from '@react-aria/collections';
 import { buildHeaderRows, TableColumnResizeState } from '@react-stately/table';
 import { ButtonContext } from './Button';
 import { CheckboxContext } from './RSPContexts';
@@ -554,7 +554,7 @@ export interface TableHeaderProps<T> extends StyleRenderProps<TableHeaderRenderP
   dependencies?: ReadonlyArray<any>
 }
 
-class TableHeaderNode<T> extends FilterLessNode<T> {
+class TableHeaderNode<T> extends CollectionNode<T> {
   static readonly type = 'tableheader';
 }
 
@@ -695,7 +695,7 @@ export interface ColumnProps extends RenderProps<ColumnRenderProps>, GlobalDOMAt
   maxWidth?: ColumnStaticSize | null
 }
 
-class TableColumnNode extends FilterLessNode<unknown> {
+class TableColumnNode extends CollectionNode<unknown> {
   static readonly type = 'column';
 }
 
@@ -935,7 +935,7 @@ export interface TableBodyProps<T> extends Omit<CollectionProps<T>, 'disabledKey
   renderEmptyState?: (props: TableBodyRenderProps) => ReactNode
 }
 
-class TableBodyNode<T> extends CollectionNode<T> {
+class TableBodyNode<T> extends FilterableNode<T> {
   static readonly type = 'tablebody';
 }
 
@@ -1241,7 +1241,7 @@ export interface CellProps extends RenderProps<CellRenderProps>, GlobalDOMAttrib
   colSpan?: number
 }
 
-class TableCellNode extends FilterLessNode<unknown> {
+class TableCellNode extends CollectionNode<unknown> {
   static readonly type = 'cell';
 }
 

@@ -66,6 +66,9 @@ function createElementWithDimensions(elemName, dimensions, margins = {}) {
     bottom: dimensions.bottom || 0
   });
 
+  jest.spyOn(elem, 'offsetWidth', 'get').mockImplementation(() => dimensions.width || 0);
+  jest.spyOn(elem, 'offsetHeight', 'get').mockImplementation(() => dimensions.height || 0);
+
   jest.spyOn(elem, 'scrollWidth', 'get').mockImplementation(() => dimensions.width || 0);
   jest.spyOn(elem, 'scrollHeight', 'get').mockImplementation(() => dimensions.height || 0);
 
@@ -128,20 +131,23 @@ describe('calculatePosition', function () {
       arrowOffsetTop: expected[3],
       maxHeight,
       placement: calculatedPlacement,
-      triggerOrigin: {
+      triggerAnchorPoint: {
         x: expected[2] ?? (calculatedPlacement === 'left' ? overlaySize.width : 0),
         y: expected[3] ?? (calculatedPlacement === 'top' ? Math.min(overlaySize.height, maxHeight) : 0)
       }
     };
 
     const container = createElementWithDimensions('div', containerDimensions);
+    Object.assign(container.style, {
+      position: 'relative'
+    });
     const target = createElementWithDimensions('div', targetDimension);
     const overlay = createElementWithDimensions('div', overlaySize, margins);
 
     const parentElement = document.createElement('div');
     parentElement.appendChild(container);
     parentElement.appendChild(target);
-    parentElement.appendChild(overlay);
+    container.appendChild(overlay);
 
     document.documentElement.appendChild(parentElement);
 

@@ -213,7 +213,7 @@ const tablist = style({
 
 const tablistWrapper = style({
   position: 'relative',
-  minWidth: 'min',
+  minWidth: 0,
   flexShrink: 0,
   flexGrow: 0
 }, getAllowedOverrides());
@@ -353,6 +353,7 @@ const tab = style<TabRenderProps & {density?: 'compact' | 'regular', labelBehavi
   alignItems: 'center',
   position: 'relative',
   cursor: 'default',
+  textDecoration: 'none',
   flexShrink: 0,
   transition: 'default',
   paddingX: {

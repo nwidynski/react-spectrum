@@ -51,6 +51,13 @@ describe('useOverlayPosition', function () {
   beforeEach(() => {
     Object.defineProperty(HTMLElement.prototype, 'clientHeight', {configurable: true, value: 768});
     Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 500});
+
+    jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (this: HTMLElement) {
+      return parseInt(this.style.width, 10) || 0;
+    });
+    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return parseInt(this.style.height, 10) || 0;
+    });
   });
 
   it('should position the overlay relative to the trigger', function () {
@@ -82,7 +89,7 @@ describe('useOverlayPosition', function () {
       position: absolute;
       z-index: 100000;
       left: 12px;
-      bottom: 518px;
+      bottom: 350px;
       max-height: 238px;
     `);
 
@@ -274,7 +281,7 @@ describe('useOverlayPosition with positioned container', () => {
       z-index: 100000;
       left: 12px;
       top: 200px;
-      max-height: 406px;
+      max-height: 556px;
     `);
 
     expect(overlay).toHaveTextContent('placement: bottom');
@@ -296,7 +303,7 @@ describe('useOverlayPosition with positioned container', () => {
       z-index: 100000;
       left: 12px;
       bottom: 300px;
-      max-height: 238px;
+      max-height: 88px;
     `);
 
     expect(overlay).toHaveTextContent('placement: top');
