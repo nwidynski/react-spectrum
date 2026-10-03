@@ -10,15 +10,17 @@
  * governing permissions and limitations under the License.
  */
 
+import {AnchorOverlayPositioner, DefaultOverlayPositioner} from 'react-aria/useOverlayPosition';
 import {Button} from '../src/Button';
 
 import {Dialog, DialogTrigger} from '../src/Dialog';
 import {Heading} from '../src/Heading';
 import {Meta, StoryFn, StoryObj} from '@storybook/react';
 import {OverlayArrow} from '../src/OverlayArrow';
-import {Popover} from '../src/Popover';
-import React, {JSX, useEffect, useRef, useState} from 'react';
+import {Popover, PopoverProps} from '../src/Popover';
+import React, {JSX, ReactNode, useEffect, useRef, useState} from 'react';
 import styles from './styles.css';
+import {UNSAFE_PortalProvider} from 'react-aria/PortalProvider';
 
 export default {
   title: 'React Aria Components/Popover',
@@ -64,45 +66,56 @@ export default {
 
 export type PopoverStory = StoryFn<typeof Popover>;
 
-export const PopoverExample: PopoverStory = args => (
-  <DialogTrigger>
-    <Button>Open popover</Button>
-    <Popover
-      {...args}
-      className={`${styles['popover-base']} ${styles[(args as any).animation]}`}
-      style={{
-        background: 'Canvas',
-        color: 'CanvasText',
-        border: '1px solid gray',
-        padding: 30,
-        zIndex: 5
-      }}>
-      {!(args as any).hideArrow && (
-        <OverlayArrow style={{display: 'flex'}}>
-          <svg width="12" height="12" viewBox="0 0 12 12" style={{display: 'block'}}>
-            <path d="M0 0L6 6L12 0" fill="white" strokeWidth={1} stroke="gray" />
-          </svg>
-        </OverlayArrow>
-      )}
-      <Dialog>
-        {({close}) => (
-          <form style={{display: 'flex', flexDirection: 'column'}}>
-            <Heading slot="title">Sign up</Heading>
-            <label>
-              First Name: <input placeholder="John" />
-            </label>
-            <label>
-              Last Name: <input placeholder="Smith" />
-            </label>
-            <Button onPress={close} style={{marginTop: 10}}>
-              Submit
-            </Button>
-          </form>
+interface PopoverExampleProps extends PopoverProps {
+  animation?: 'transition' | 'animation' | 'animation-delayed';
+  hideArrow?: boolean;
+}
+
+function PopoverExampleRender(args: PopoverExampleProps): JSX.Element {
+  return (
+    <DialogTrigger>
+      <Button>Open popover</Button>
+      <Popover
+        {...args}
+        className={`${styles['popover-base']} ${styles[args.animation!]}`}
+        style={{
+          background: 'Canvas',
+          color: 'CanvasText',
+          border: '1px solid gray',
+          padding: 30,
+          zIndex: 5
+        }}>
+        {!args.hideArrow && (
+          <OverlayArrow style={{display: 'flex'}}>
+            <svg width="12" height="12" viewBox="0 0 12 12" style={{display: 'block'}}>
+              <path d="M0 0L6 6L12 0" fill="white" strokeWidth={1} stroke="gray" />
+            </svg>
+          </OverlayArrow>
         )}
-      </Dialog>
-    </Popover>
-  </DialogTrigger>
-);
+        <Dialog>
+          {({close}) => (
+            <form style={{display: 'flex', flexDirection: 'column'}}>
+              <Heading slot="title">Sign up</Heading>
+              <label>
+                First Name: <input placeholder="John" />
+              </label>
+              <label>
+                Last Name: <input placeholder="Smith" />
+              </label>
+              <Button onPress={close} style={{marginTop: 10}}>
+                Submit
+              </Button>
+            </form>
+          )}
+        </Dialog>
+      </Popover>
+    </DialogTrigger>
+  );
+}
+
+export const PopoverExample: StoryObj<typeof PopoverExampleRender> = {
+  render: args => <PopoverExampleRender {...args} />
+};
 
 const COUNTDOWN = 5000;
 
@@ -607,5 +620,82 @@ export const ScrollingBoundaryContainer: StoryObj<typeof ScrollingBoundaryContai
         disable: true
       }
     }
+  }
+};
+
+const DEFAULT_POSITIONER = new DefaultOverlayPositioner();
+const ANCHOR_POSITIONER = new AnchorOverlayPositioner();
+
+interface PositionerContainerProps {
+  children: (container: HTMLDivElement) => ReactNode;
+}
+
+function PositionerContainer(props: PositionerContainerProps): JSX.Element {
+  let [container, setContainer] = useState<HTMLDivElement | null>(null);
+
+  return (
+    <div
+      ref={setContainer}
+      style={{
+        position: 'relative',
+        contain: 'layout',
+        resize: 'both',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        width: 640,
+        height: 560,
+        minWidth: 200,
+        minHeight: 200,
+        paddingTop: 240,
+        paddingLeft: 240,
+        border: '1px dashed gray'
+      }}>
+      {container && props.children(container)}
+    </div>
+  );
+}
+
+export const DefaultPositionerExample: StoryObj<typeof Popover> = {
+  render: args => (
+    <PositionerContainer>
+      {container => (
+        <PopoverExampleRender
+          {...args}
+          positioner={DEFAULT_POSITIONER}
+          boundaryElement={container}
+          shouldCloseOnInteractOutside={element => element !== container}
+        />
+      )}
+    </PositionerContainer>
+  ),
+  args: {
+    placement: 'bottom'
+  },
+  argTypes: {
+    positioner: {table: {disable: true}}
+  }
+};
+
+export const AnchorPositionerExample: StoryObj<typeof Popover> = {
+  render: args => (
+    <PositionerContainer>
+      {container => (
+        <UNSAFE_PortalProvider getContainer={() => container}>
+          <PopoverExampleRender
+            {...args}
+            positioner={ANCHOR_POSITIONER}
+            boundaryElement={container}
+            shouldCloseOnInteractOutside={element => element !== container}
+          />
+        </UNSAFE_PortalProvider>
+      )}
+    </PositionerContainer>
+  ),
+  args: {
+    placement: 'bottom'
+  },
+  argTypes: {
+    crossOffset: {table: {disable: true}},
+    positioner: {table: {disable: true}}
   }
 };

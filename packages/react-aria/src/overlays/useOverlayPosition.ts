@@ -11,15 +11,14 @@
  */
 
 import {addEvent} from '../utils/domHelpers';
-import {calculatePosition, getRect, PositionResult} from './calculatePosition';
+import {DefaultOverlayPositioner} from './DefaultOverlayPositioner';
 import {DOMAttributes, RefObject} from '@react-types/shared';
-import {getActiveElement, isFocusWithin} from '../utils/shadowdom/DOMFunctions';
 import {getPropagationTargets} from '../utils/shadowdom/DOMFunctions';
+import {getRect, PositionOpts, PositionResult} from './calculatePosition';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useCloseOnScroll} from './useCloseOnScroll';
 import {useLayoutEffect} from '../utils/useLayoutEffect';
 import {useLocale} from '../i18n/I18nProvider';
-import {useResizeObserver} from '../utils/useResizeObserver';
 
 export type Placement =
   | 'bottom'
@@ -151,6 +150,12 @@ export interface AriaPositionProps extends PositionProps {
    * @param target - The target element.
    */
   getTargetRect?: (target: Element) => DOMRect | null | undefined;
+  /**
+   * Places the overlay and decides when to update its position.
+   *
+   * @default DefaultOverlayPositioner
+   */
+  positioner?: OverlayPositioner;
 }
 
 export interface PositionAria {
@@ -166,12 +171,28 @@ export interface PositionAria {
   updatePosition(): void;
 }
 
-interface ScrollAnchor {
-  type: 'top' | 'bottom';
-  offset: number;
+let visualViewport = typeof document !== 'undefined' ? window.visualViewport : null;
+
+export interface SubscribeOpts {
+  targetNode: Element;
+  overlayNode: Element;
+  scrollNode: Element;
+  boundaryElement: Element;
 }
 
-let visualViewport = typeof document !== 'undefined' ? window.visualViewport : null;
+/**
+ * Places an overlay relative to its target and tells `useOverlayPosition` when to update it.
+ */
+export interface OverlayPositioner {
+  /** The CSS position the overlay is rendered with once placed. */
+  readonly position: 'absolute' | 'fixed';
+  /** Observes layout changes that require an update. Returns a function that stops observing. */
+  subscribe(opts: SubscribeOpts, updatePosition: () => void): () => void;
+  /** Places the overlay. Returns `null` if it cannot place the overlay. */
+  update(opts: PositionOpts): PositionResult | null;
+}
+
+const DEFAULT_POSITIONER = new DefaultOverlayPositioner();
 
 /**
  * Handles positioning overlays like popovers and menus relative to a trigger
@@ -196,7 +217,8 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
     onClose,
     maxHeight,
     arrowBoundaryOffset = 0,
-    getTargetRect
+    getTargetRect,
+    positioner = DEFAULT_POSITIONER
   } = props;
   let [position, setPosition] = useState<PositionResult | null>(null);
 
@@ -220,7 +242,8 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
     direction,
     maxHeight,
     arrowBoundaryOffset,
-    arrowSize
+    arrowSize,
+    positioner
   ];
 
   // Note, the position freezing breaks if body sizes itself dynamicly with the visual viewport but that might
@@ -248,36 +271,7 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
       return;
     }
 
-    // Determine a scroll anchor based on the focused element.
-    // This stores the offset of the anchor element from the scroll container
-    // so it can be restored after repositioning. This way if the overlay height
-    // changes, the focused element appears to stay in the same position.
-    let anchor: ScrollAnchor | null = null;
-    if (scrollRef.current && isFocusWithin(scrollRef.current)) {
-      let anchorRect = getActiveElement()?.getBoundingClientRect();
-      let scrollRect = scrollRef.current.getBoundingClientRect();
-      // Anchor from the top if the offset is in the top half of the scrollable element,
-      // otherwise anchor from the bottom.
-      anchor = {
-        type: 'top',
-        offset: (anchorRect?.top ?? 0) - scrollRect.top
-      };
-      if (anchor.offset > scrollRect.height / 2) {
-        anchor.type = 'bottom';
-        anchor.offset = (anchorRect?.bottom ?? 0) - scrollRect.bottom;
-      }
-    }
-
-    // Always reset the overlay's previous max height if not defined by the user so that we can compensate for
-    // RAC collections populating after a second render and properly set a correct max height + positioning when it populates.
-    let overlay = overlayRef.current as HTMLElement;
-    if (!maxHeight && overlayRef.current) {
-      overlay.style.top = '0px';
-      overlay.style.bottom = '';
-      overlay.style.maxHeight = (window.visualViewport?.height ?? window.innerHeight) + 'px';
-    }
-
-    let position = calculatePosition({
+    let position = positioner.update({
       placement: translateRTL(placement, direction),
       overlayNode: overlayRef.current,
       targetNode: targetRef.current,
@@ -293,29 +287,8 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
       targetRect: getTargetRect?.(targetRef.current)
     });
 
-    if (!position.position) {
+    if (!position) {
       return;
-    }
-
-    // Modify overlay styles directly so positioning happens immediately without the need of a second render
-    // This is so we don't have to delay autoFocus scrolling or delay applying preventScroll for popovers
-    overlay.style.top = '';
-    overlay.style.bottom = '';
-    overlay.style.left = '';
-    overlay.style.right = '';
-
-    Object.keys(position.position).forEach(
-      key => (overlay.style[key] = position.position![key] + 'px')
-    );
-    overlay.style.maxHeight = position.maxHeight != null ? position.maxHeight + 'px' : '';
-
-    // Restore scroll position relative to anchor element.
-    let activeElement = getActiveElement();
-    if (anchor && activeElement && scrollRef.current) {
-      let anchorRect = activeElement.getBoundingClientRect();
-      let scrollRect = scrollRef.current.getBoundingClientRect();
-      let newOffset = anchorRect[anchor.type] - scrollRect[anchor.type];
-      scrollRef.current.scrollTop += newOffset - anchor.offset;
     }
 
     // Trigger a set state for a second render anyway for arrow positioning
@@ -329,20 +302,23 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
   // oxlint-disable-next-line react/react-compiler, react-hooks/exhaustive-deps
   useLayoutEffect(updatePosition, deps);
 
-  // Update position on window resize
-  useResize(updatePosition);
+  // Update position when the positioner observes a layout change, e.g. on window resize.
+  useLayoutEffect(() => {
+    if (!isOpen || !overlayRef.current || !targetRef.current || !boundaryElement) {
+      return;
+    }
 
-  // Update position when the overlay changes size (might need to flip).
-  useResizeObserver({
-    ref: overlayRef,
-    onResize: updatePosition
-  });
-
-  // Update position when the target changes size (might need to flip).
-  useResizeObserver({
-    ref: targetRef,
-    onResize: updatePosition
-  });
+    return positioner.subscribe(
+      {
+        targetNode: targetRef.current,
+        overlayNode: overlayRef.current,
+        scrollNode: scrollRef.current || overlayRef.current,
+        boundaryElement
+      },
+      updatePosition
+    );
+    // oxlint-disable-next-line react/react-compiler
+  }, [positioner, isOpen, overlayRef, targetRef, scrollRef, boundaryElement, updatePosition]);
 
   // Reposition the overlay and do not close on scroll while the visual viewport is resizing.
   // This will ensure that overlays adjust their positioning when the iOS virtual keyboard appears.
@@ -400,7 +376,7 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
   return {
     overlayProps: {
       style: {
-        position: position ? 'absolute' : 'fixed',
+        position: position ? positioner.position : 'fixed',
         top: !position ? 0 : undefined,
         left: !position ? 0 : undefined,
         zIndex: 100000, // should match the z-index in ModalTrigger
@@ -420,15 +396,6 @@ export function useOverlayPosition(props: AriaPositionProps): PositionAria {
     },
     updatePosition
   };
-}
-
-function useResize(onResize) {
-  useLayoutEffect(() => {
-    window.addEventListener('resize', onResize, false);
-    return () => {
-      window.removeEventListener('resize', onResize, false);
-    };
-  }, [onResize]);
 }
 
 function translateRTL(position, direction) {
