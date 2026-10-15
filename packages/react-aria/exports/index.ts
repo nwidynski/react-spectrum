@@ -117,6 +117,8 @@ export {Overlay} from '../src/overlays/Overlay';
 export {useModalOverlay} from '../src/overlays/useModalOverlay';
 export {useOverlay} from '../src/overlays/useOverlay';
 export {useOverlayPosition} from '../src/overlays/useOverlayPosition';
+export {DefaultOverlayPositioner} from '../src/overlays/DefaultOverlayPositioner';
+export {AnchorOverlayPositioner} from '../src/overlays/AnchorOverlayPositioner';
 export {useOverlayTrigger} from '../src/overlays/useOverlayTrigger';
 export {usePopover} from '../src/overlays/usePopover';
 export {usePreventScroll} from '../src/overlays/usePreventScroll';
@@ -422,7 +424,9 @@ export type {
   PlacementAxis,
   PositionProps,
   Axis,
-  SizeAxis
+  SizeAxis,
+  OverlayPositioner,
+  SubscribeOpts
 } from '../src/overlays/useOverlayPosition';
 export type {DismissButtonProps} from '../src/overlays/DismissButton';
 export type {OverlayProps} from '../src/overlays/Overlay';

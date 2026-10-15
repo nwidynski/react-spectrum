@@ -50,7 +50,7 @@ interface Offset {
   height: number;
 }
 
-interface PositionOpts {
+export interface PositionOpts {
   arrowSize: number;
   placement: Placement;
   targetNode: Element;
@@ -73,7 +73,7 @@ export interface PositionResult {
   arrowOffsetLeft?: number;
   arrowOffsetTop?: number;
   triggerAnchorPoint: {x: number; y: number};
-  maxHeight: number;
+  maxHeight?: number;
   placement: PlacementAxis;
 }
 
